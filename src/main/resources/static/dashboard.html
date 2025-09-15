@@ -98,7 +98,16 @@
         <!-- Header -->
         <div class="mb-6 sm:mb-8">
             <div class="text-center">
-                <h1 class="text-2xl sm:text-3xl font-semibold text-foreground mb-2">Leaderboard</h1>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="w-16"></div> <!-- Spacer for balance -->
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-foreground flex-1 text-center">Leaderboard</h1>
+                    <button 
+                        onclick="logout()"
+                        class="px-3 py-1 bg-red-500 text-white hover:bg-red-600 rounded-md text-sm w-16"
+                    >
+                        Logout
+                    </button>
+                </div>
                 <p class="text-sm sm:text-base text-muted-foreground mb-4">Add scores and watch updates in real-time</p>
                 <div id="connectionStatus" class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-muted text-muted-foreground">
                     <div class="w-2 h-2 rounded-full bg-muted-foreground animate-pulse"></div>
@@ -188,6 +197,57 @@
     <script>
         let stompClient = null;
         let isConnected = false;
+        let userRole = null;
+        let isAdmin = false;
+
+        // Check user authentication and role
+        function checkAuthentication() {
+            fetch('/api/user-info', {
+                credentials: 'include'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Not authenticated');
+                }
+            })
+            .then(data => {
+                userRole = data.role;
+                isAdmin = userRole === 'ADMIN';
+                updateUIForRole();
+                console.log(data)
+            })
+            .catch(error => {
+                console.error('Authentication check failed:', error);
+                window.location.href = '/login.html';
+            });
+        }
+
+        function updateUIForRole() {
+            const scoreForm = document.getElementById('scoreForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const adminNotice = document.getElementById('adminNotice');
+            
+            if (isAdmin) {
+                scoreForm.style.display = 'flex';
+                submitBtn.textContent = 'Add Score';
+                if (adminNotice) {
+                    adminNotice.style.display = 'block';
+                }
+            } else {
+                scoreForm.style.display = 'none';
+                if (adminNotice) {
+                    adminNotice.style.display = 'none';
+                }
+                // Add a notice for regular users
+                const userNotice = document.createElement('div');
+                userNotice.id = 'userNotice';
+                userNotice.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center';
+                userNotice.innerHTML = '<p class="text-blue-700 text-sm">You are viewing the leaderboard in read-only mode. Only administrators can update scores.</p>';
+                scoreForm.parentNode.insertBefore(userNotice, scoreForm);
+            }
+        }
 
         function connect() {
             updateConnectionStatus('connecting');
@@ -236,6 +296,11 @@
         }
 
         function sendScore() {
+            if (!isAdmin) {
+                alert('Only administrators can update scores.');
+                return;
+            }
+
             const name = document.getElementById('playerName').value.trim();
             const score = parseFloat(document.getElementById('playerScore').value);
             
@@ -338,8 +403,23 @@
             sendScore();
         });
 
+        function logout() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(() => {
+                window.location.href = '/login.html';
+            })
+            .catch(error => {
+                console.error('Logout failed:', error);
+                window.location.href = '/login.html';
+            });
+        }
+
         // Connect when page loads
         window.addEventListener('load', function() {
+            checkAuthentication();
             connect();
         });
 

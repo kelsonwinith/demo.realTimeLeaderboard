@@ -3,6 +3,7 @@ package com.example.backend.modules.dashboard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import java.util.List;
 
@@ -14,8 +15,8 @@ public class DashboardController {
 
     @MessageMapping("/dashboard/update")
     @SendTo("/topic/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
     public DashboardResponse updateScore(DashboardRequest request) {
-
         // Update the score in the service
         dashboardService.updateScore(request.getName(), request.getScore());
 
@@ -29,6 +30,13 @@ public class DashboardController {
     @MessageMapping("/dashboard/refresh")
     @SendTo("/topic/dashboard")
     public DashboardResponse refreshDashboard() {
+        List<DashboardResponse.DashboardEntry> leaderboard = dashboardService.getLeaderboard();
+        return new DashboardResponse(leaderboard);
+    }
+
+    @MessageMapping("/dashboard/user/refresh")
+    @SendTo("/topic/dashboard")
+    public DashboardResponse refreshDashboardForUser() {
         List<DashboardResponse.DashboardEntry> leaderboard = dashboardService.getLeaderboard();
         return new DashboardResponse(leaderboard);
     }
