@@ -131,8 +131,8 @@
                         </button>
                     </div>
                     
-                    <!-- Add Score Form -->
-                    <div class="bg-muted/30 rounded-lg p-4 mb-6">
+                    <!-- Add Score Form Container -->
+                    <div id="formContainer" class="bg-muted/30 rounded-lg p-4 mb-6" style="display: none;">
                         <form id="scoreForm" class="flex flex-col sm:flex-row gap-3">
                             <div class="flex-1">
                                 <input 
@@ -225,18 +225,22 @@
         }
 
         function updateUIForRole() {
+            const formContainer = document.getElementById('formContainer');
             const scoreForm = document.getElementById('scoreForm');
             const submitBtn = document.getElementById('submitBtn');
             const adminNotice = document.getElementById('adminNotice');
             
             if (isAdmin) {
+                // Show the form container for admin users
+                formContainer.style.display = 'block';
                 scoreForm.style.display = 'flex';
                 submitBtn.textContent = 'Add Score';
                 if (adminNotice) {
                     adminNotice.style.display = 'block';
                 }
             } else {
-                scoreForm.style.display = 'none';
+                // Hide the form container and show user notice
+                formContainer.style.display = 'none';
                 if (adminNotice) {
                     adminNotice.style.display = 'none';
                 }
@@ -245,7 +249,7 @@
                 userNotice.id = 'userNotice';
                 userNotice.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center';
                 userNotice.innerHTML = '<p class="text-blue-700 text-sm">You are viewing the leaderboard in read-only mode. Only administrators can update scores.</p>';
-                scoreForm.parentNode.insertBefore(userNotice, scoreForm);
+                formContainer.parentNode.insertBefore(userNotice, formContainer);
             }
         }
 
