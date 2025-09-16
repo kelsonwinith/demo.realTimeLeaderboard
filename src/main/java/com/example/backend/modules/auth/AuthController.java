@@ -1,5 +1,7 @@
 package com.example.backend.modules.auth;
 
+import com.example.backend.dto.ApiResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,7 @@ import java.util.Map;
 public class AuthController {
 
     @GetMapping("/user-info")
-    public Map<String, Object> getUserInfo() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Map<String, Object> userInfo = new HashMap<>();
 
@@ -26,10 +28,10 @@ public class AuthController {
             }
             userInfo.put("role", role);
             userInfo.put("authenticated", true);
-        } else {
-            userInfo.put("authenticated", false);
-        }
 
-        return userInfo;
+            return ApiResponse.ok(userInfo, "User information retrieved successfully");
+        } else {
+            return ApiResponse.unauthorized("User is not authenticated");
+        }
     }
 }

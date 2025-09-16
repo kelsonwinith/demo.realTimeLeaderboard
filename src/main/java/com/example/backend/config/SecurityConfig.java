@@ -18,42 +18,44 @@ import org.springframework.context.annotation.Configuration;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/login", "/login.html", "/static/**", "/gs-guide-websocket/**").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin((form) -> form
-                        .loginPage("/login.html")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard.html", true)
-                        .permitAll())
-                .logout((logout) -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login.html")
-                        .permitAll())
-                .csrf((csrf) -> csrf.disable()) // Disable CSRF for WebSocket
-                .build();
-    }
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                return http
+                                .authorizeHttpRequests((requests) -> requests
+                                                .requestMatchers("/login", "/login.html", "/static/**",
+                                                                "/gs-guide-websocket/**")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .formLogin((form) -> form
+                                                .loginPage("/login.html")
+                                                .loginProcessingUrl("/login")
+                                                .defaultSuccessUrl("/dashboard.html", true)
+                                                .permitAll())
+                                .logout((logout) -> logout
+                                                .logoutUrl("/logout")
+                                                .logoutSuccessUrl("/login.html")
+                                                .permitAll())
+                                .csrf((csrf) -> csrf.disable())
+                                .build();
+        }
 
-    @Bean
-    public UserDetailsService users() {
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder().encode("user"))
-                .roles("USER")
-                .build();
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(user, admin);
-    }
+        @Bean
+        public UserDetailsService users() {
+                UserDetails user = User.builder()
+                                .username("user")
+                                .password(passwordEncoder().encode("user"))
+                                .roles("USER")
+                                .build();
+                UserDetails admin = User.builder()
+                                .username("admin")
+                                .password(passwordEncoder().encode("admin"))
+                                .roles("ADMIN")
+                                .build();
+                return new InMemoryUserDetailsManager(user, admin);
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 }

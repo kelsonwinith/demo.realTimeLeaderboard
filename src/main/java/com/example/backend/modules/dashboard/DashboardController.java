@@ -3,8 +3,10 @@ package com.example.backend.modules.dashboard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -15,8 +17,31 @@ public class DashboardController {
 
     @MessageMapping("/dashboard/update")
     @SendTo("/topic/dashboard")
-    @PreAuthorize("hasRole('ADMIN')")
-    public DashboardResponse updateScore(DashboardRequest request) {
+    public DashboardResponse updateScore(DashboardRequest request, Principal principal) {
+
+        // Check authentication manually using Principal
+        if (principal == null) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        // Cast Principal to Authentication to check authorities
+        if (!(principal instanceof Authentication)) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        Authentication auth = (Authentication) principal;
+        if (!auth.isAuthenticated()) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        // Check if user has ADMIN role
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            throw new SecurityException("Access denied. Admin role required.");
+        }
+
         // Update the score in the service
         dashboardService.updateScore(request.getName(), request.getScore());
 
@@ -28,16 +53,10 @@ public class DashboardController {
     }
 
     @MessageMapping("/dashboard/refresh")
-    @SendTo("/topic/dashboard")
-    public DashboardResponse refreshDashboard() {
+    @SendToUser("/queue/dashboard")
+    public DashboardResponse refreshDashboard(Principal principal) {
         List<DashboardResponse.DashboardEntry> leaderboard = dashboardService.getLeaderboard();
         return new DashboardResponse(leaderboard);
     }
 
-    @MessageMapping("/dashboard/user/refresh")
-    @SendTo("/topic/dashboard")
-    public DashboardResponse refreshDashboardForUser() {
-        List<DashboardResponse.DashboardEntry> leaderboard = dashboardService.getLeaderboard();
-        return new DashboardResponse(leaderboard);
-    }
 }

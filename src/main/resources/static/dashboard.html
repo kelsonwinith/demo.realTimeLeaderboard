@@ -213,7 +213,7 @@
                 }
             })
             .then(data => {
-                userRole = data.role;
+                userRole = data.data.role;
                 isAdmin = userRole === 'ADMIN';
                 updateUIForRole();
                 console.log(data)
@@ -262,8 +262,14 @@
                 isConnected = true;
                 updateConnectionStatus('connected');
                 
-                // Subscribe to dashboard updates
+                // Subscribe to dashboard updates (broadcast to all users)
                 stompClient.subscribe('/topic/dashboard', function (message) {
+                    const response = JSON.parse(message.body);
+                    updateLeaderboard(response.leaderboard);
+                });
+                
+                // Subscribe to user-specific dashboard updates (refresh only for this user)
+                stompClient.subscribe('/user/queue/dashboard', function (message) {
                     const response = JSON.parse(message.body);
                     updateLeaderboard(response.leaderboard);
                 });
