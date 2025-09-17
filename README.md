@@ -68,6 +68,9 @@ The Real-Time Leaderboard application provides a web-based dashboard for managin
 4. All users can view the live leaderboard and statistics
 5. Changes are broadcast to all connected users in real-time
 
+### Screenshot
+![CleanShot 2568-09-17 at 14 39 23](https://github.com/user-attachments/assets/59a2e0c5-2513-4281-9006-eb451fec5806)
+
 ## License
 
 This project is licensed under the MIT License.
